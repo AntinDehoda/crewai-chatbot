@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from crewai import Task, Crew
+from crewai import Task, Crew, Process
 from agents.conversation_agent import create_conversation_agent
 
 # Завантаження змінних оточення
@@ -24,7 +24,21 @@ def main():
     conversation_agent = create_conversation_agent()
     
     print("✅ Агент готовий до роботи!\n")
-    
+       # Створення Crew та виконання
+    crew = Crew(
+        agents=[conversation_agent],
+        tasks=[],
+        verbose=True,
+        process=Process.sequential,
+        memory=True,
+        embedder={
+            "provider": "openai",
+            "config": {
+                "model": "text-embedding-ada-002"
+           }
+        }
+    )
+
     # Інтерактивний цикл розмови
     while True:
         # Отримання вводу від користувача
@@ -44,13 +58,7 @@ def main():
             agent=conversation_agent,
             expected_output="Природна та корисна відповідь на повідомлення користувача"
         )
-        
-        # Створення Crew та виконання
-        crew = Crew(
-            agents=[conversation_agent],
-            tasks=[task],
-            verbose=False
-        )
+        crew.tasks=[task]
         
         print("\n🤖 Агент: ", end="", flush=True)
         
