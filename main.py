@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from crewai import Task, Crew, Process
 from agents.conversation_agent import create_conversation_agent
+from crewai.memory.short_term.short_term_memory import ShortTermMemory
 
 # Завантаження змінних оточення
 load_dotenv()
@@ -22,21 +23,21 @@ def main():
     
     # Створення агента
     conversation_agent = create_conversation_agent()
-    
+    short_term_memory = ShortTermMemory(
+        embedder_config={
+            "provider": "openai",
+            "model": "text-embedding-3-small",
+        }
+    )
     print("✅ Агент готовий до роботи!\n")
-       # Створення Crew та виконання
+    # Створення Crew та виконання
     crew = Crew(
         agents=[conversation_agent],
         tasks=[],
         verbose=True,
         process=Process.sequential,
-        memory=True,
-        embedder={
-            "provider": "openai",
-            "config": {
-                "model": "text-embedding-ada-002"
-           }
-        }
+        memory=False,
+        short_term_memory=short_term_memory
     )
 
     # Інтерактивний цикл розмови
