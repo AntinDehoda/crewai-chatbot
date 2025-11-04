@@ -8,7 +8,7 @@
 - **OpenAI GPT-4o-mini**: Швидка та економічна модель для чат-бота
 - **Два інтерфейси**: 
   - Консольний (`main_short_term_only.py`)
-  - Веб-застосунок на Streamlit (`app_v2.py`)
+  - Веб-застосунок на Streamlit (`webapp.py`)
 - **Управління історією**: Можливість очищення історії розмови
 - **Персоналізовані відповіді**: Агент запам'ятовує деталі про користувача в межах сесії
 
@@ -18,8 +18,7 @@
 crewai-chatbot/
 ├── agents/
 │   └── conversation_agent.py    # Визначення агента для розмови
-├── app_v2.py                    # Веб-інтерфейс Streamlit (рекомендовано)
-├── app.py                       # Базовий веб-інтерфейс
+├── webapp.py                    # Веб-інтерфейс Streamlit (рекомендовано)
 ├── main_short_term_only.py      # Консольний інтерфейс
 ├── requirements.txt             # Python залежності
 └── .env                         # API ключі (не включено в репозиторій)
@@ -37,7 +36,7 @@ crewai-chatbot/
 - Embeddings: OpenAI text-embedding-3-small
 - Зберігає контекст тільки в межах поточної сесії
 
-**Web Interface** (`app_v2.py`)
+**Web Interface** (`webapp.py`)
 - Streamlit chat UI
 - Session state для збереження Crew та історії
 - Автоматичне форматування контексту (останні 5 повідомлень)
@@ -60,7 +59,7 @@ crewai-chatbot/
 ### Веб-інтерфейс (рекомендовано)
 
 ```bash
-streamlit run app_v2.py
+streamlit run webapp.py
 ```
 
 Відкриється браузер з чат-інтерфейсом. Просто починай вводити повідомлення!
@@ -108,7 +107,7 @@ llm = ChatOpenAI(
 
 ### Кількість повідомлень у контексті
 
-У файлі `app_v2.py`:
+У файлі `webapp.py`:
 
 ```python
 def format_conversation_context(messages, last_n=5):  # Змініть 5 на потрібну кількість
@@ -148,7 +147,7 @@ rm -rf ~/.local/share/crewai-chatbot/*
 
 1. Завантажте проєкт на GitHub
 2. Підключіться до [share.streamlit.io](https://share.streamlit.io)
-3. Вкажіть репозиторій та `app_v2.py` як головний файл
+3. Вкажіть репозиторій та `webapp.py` як головний файл
 4. Додайте `OPENAI_API_KEY` в Secrets
 
 Детальніше: [Streamlit Cloud Documentation](https://docs.streamlit.io/streamlit-community-cloud)

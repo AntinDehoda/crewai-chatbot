@@ -114,7 +114,7 @@ python main_short_term_only.py
 Запустіть Streamlit застосунок:
 
 ```bash
-streamlit run app_v2.py
+streamlit run webapp.py
 ```
 
 Streamlit автоматично:
@@ -156,13 +156,6 @@ Streamlit автоматично:
 1. Додайте `CHROMA_OPENAI_API_KEY` в `.env` (той самий ключ)
 2. Перевірте доступ до моделі `text-embedding-3-small`
 
-### Агент не пам'ятає контекст
-
-**Проблема:** Використовуєте старий файл `app.py` замість `app_v2.py`.
-
-**Рішення:**
-- Запускайте саме `app_v2.py`: `streamlit run app_v2.py`
-- Або скопіюйте вміст: `cp app_v2.py app.py`
 
 ### Streamlit показує помилку "Address already in use"
 
@@ -170,7 +163,7 @@ Streamlit автоматично:
 
 **Рішення:**
 ```bash
-streamlit run app_v2.py --server.port 8502
+streamlit run webapp.py --server.port 8502
 ```
 
 ## 📊 GitHub Codespaces
@@ -195,23 +188,4 @@ rm -rf ~/.local/share/crewai-chatbot/*
 rm -rf /home/codespace/.local/share/crewai-chatbot/*
 ```
 
-## ✅ Що далі?
-
-Після успішного запуску:
-
-1. Протестуйте різні сценарії розмов
-2. Поекспериментуйте з налаштуваннями (temperature, model)
-3. Додайте нових агентів (Image, Audio)
-4. Задеплойте на Streamlit Cloud
-
 Детальніше про архітектуру та розробку дивіться в [README.md](README.md).
-
-## 🆘 Потрібна допомога?
-
-- Перевірте [Issues](https://github.com/your-repo/issues)
-- Читайте [CrewAI Documentation](https://docs.crewai.com)
-- Перевіряйте [OpenAI API Status](https://status.openai.com)
-
----
-
-**Готово! 🎉 Насолоджуйтесь своїм AI чат-ботом!**
