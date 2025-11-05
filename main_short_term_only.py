@@ -39,6 +39,8 @@ def main():
         memory=False,
         short_term_memory=short_term_memory
     )
+    # Історія діалогу
+    messages = []
 
     # Інтерактивний цикл розмови
     while True:
@@ -59,12 +61,20 @@ def main():
             agent=conversation_agent,
             expected_output="Природна та корисна відповідь на повідомлення користувача"
         )
+        # Оновлення історії діалогу
+        messages.append(
+            {"role": "user", "content": user_input},
+        )
         crew.tasks=[task]
         
         print("\n🤖 Агент: ", end="", flush=True)
         
         try:
-            result = crew.kickoff()
+            result = crew.kickoff(messages)
+            # Оновлення історії діалогу
+            messages.append(
+                {"role": "assistant", "content": result}
+            )
             print(f"{result}\n")
         except Exception as e:
             print(f"❌ Помилка: {e}\n")
