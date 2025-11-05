@@ -3,7 +3,7 @@ Chat Crew - координує роботу агентів та завдань
 """
 from crewai import Crew, Task, Process
 from agents.conversation_agent import create_conversation_agent
-
+from crewai.memory.short_term.short_term_memory import ShortTermMemory
 
 class ChatCrew:
     """Клас для управління чат-ботом на базі CrewAI"""
@@ -16,12 +16,19 @@ class ChatCrew:
     
     def _initialize_crew(self):
         """Створення crew з базовою конфігурацією"""
+        short_term_memory = ShortTermMemory(
+            embedder_config={
+                "provider": "openai",
+                "model": "text-embedding-3-small",
+            }
+        )
         self.crew = Crew(
             agents=[self.conversation_agent],
             tasks=[],  # Tasks будуть додаватися динамічно
             process=Process.sequential,
             verbose=True,
-            memory=True,
+            memory=False,
+            short_term_memory=short_term_memory
         )
     
     def chat(self, user_message: str) -> str:
