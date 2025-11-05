@@ -5,7 +5,7 @@ from crewai import Crew, Task, Process
 from agents.conversation_agent import create_conversation_agent
 from crewai.memory.short_term.short_term_memory import ShortTermMemory
 
-class ChatCrew:
+class ChatCrewShortTermMemory:
     """Клас для управління чат-ботом на базі CrewAI"""
     
     def __init__(self):

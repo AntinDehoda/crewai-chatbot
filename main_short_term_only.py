@@ -1,8 +1,8 @@
 import os
 from dotenv import load_dotenv
-from crewai import Task, Crew, Process
+from crewai import Task
 from agents.conversation_agent import create_conversation_agent
-from crewai.memory.short_term.short_term_memory import ShortTermMemory
+from crew.chat_crew import ChatCrewShortTermMemory
 
 # Завантаження змінних оточення
 load_dotenv()
@@ -23,22 +23,11 @@ def main():
     
     # Створення агента
     conversation_agent = create_conversation_agent()
-    short_term_memory = ShortTermMemory(
-        embedder_config={
-            "provider": "openai",
-            "model": "text-embedding-3-small",
-        }
-    )
+
     print("✅ Агент готовий до роботи!\n")
     # Створення Crew та виконання
-    crew = Crew(
-        agents=[conversation_agent],
-        tasks=[],
-        verbose=True,
-        process=Process.sequential,
-        memory=False,
-        short_term_memory=short_term_memory
-    )
+    crew = ChatCrewShortTermMemory()
+
     # Історія діалогу
     messages = []
 
@@ -61,20 +50,18 @@ def main():
             agent=conversation_agent,
             expected_output="Природна та корисна відповідь на повідомлення користувача"
         )
-        # Оновлення історії діалогу
         messages.append(
-            {"role": "user", "content": user_input},
+            {"role": "user", "content": f"{user_input}"},
+            
         )
         crew.tasks=[task]
         
         print("\n🤖 Агент: ", end="", flush=True)
         
         try:
-            result = crew.kickoff(messages)
+            result = crew.conversation_agent.kickoff(messages)
             # Оновлення історії діалогу
-            messages.append(
-                {"role": "assistant", "content": result}
-            )
+            messages.append({"role": "assistant", "content": f"{result}"},)
             print(f"{result}\n")
         except Exception as e:
             print(f"❌ Помилка: {e}\n")
