@@ -18,7 +18,7 @@
 crewai-chatbot/
 ├── agents/
 │   └── conversation_agent.py    # Визначення агента для розмови
-├── webapp.py                    # Веб-інтерфейс Streamlit (рекомендовано)
+├── webapp.py                    # Веб-інтерфейс Streamlit
 ├── main_short_term_only.py      # Консольний інтерфейс
 ├── requirements.txt             # Python залежності
 └── .env                         # API ключі (не включено в репозиторій)

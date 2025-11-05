@@ -5,7 +5,7 @@
 ## Крок 1: Клонування репозиторію
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/AntinDehoda/crewai-chatbot 
 cd crewai-chatbot
 ```
 
