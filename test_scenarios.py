@@ -74,10 +74,10 @@ def run_test_scenario(chat_crew, scenario, scenario_name):
 
 
 if __name__ == "__main__":
-    from crew.chat_crew import ChatCrew
+    from crew.chat_crew import ChatCrewShortTermMemory
     
     # Ініціалізація
-    chat_crew = ChatCrew()
+    chat_crew = ChatCrewShortTermMemory()
     
     # Вибір сценарію для тесту
     print("Доступні тестові сценарії:")

@@ -65,7 +65,7 @@ class ChatCrewShortTermMemory:
 if __name__ == "__main__":
     # Тест ChatCrew
     print("Ініціалізація ChatCrew...")
-    chat_crew = ChatCrew()
+    chat_crew = ChatCrewShortTermMemory()
     print("✓ ChatCrew готовий до роботи\n")
     
     # Тестова розмова
