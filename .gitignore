@@ -1,4 +1,7 @@
 .env
 .vscode/*
+__pycache__/
 agents/__pycache__/*
 crew/__pycache__/*
+tools/__pycache__/*
+utils/__pycache__/*
