@@ -1,17 +1,18 @@
 """
-Vector Store Manager - управління векторною базою даних для RAG
+Vector Store Manager - управління векторною базою даних для RAG (ChromaDB)
 """
 import os
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 from dotenv import load_dotenv
+from .base_vector_store import BaseVectorStore
 
 load_dotenv()
 
 
-class VectorStoreManager:
+class VectorStoreManager(BaseVectorStore):
     """Клас для управління векторною базою даних"""
 
     def __init__(
@@ -120,7 +121,7 @@ class VectorStoreManager:
         self,
         query: str,
         k: int = 4
-    ) -> List[tuple[Document, float]]:
+    ) -> List[Tuple[Document, float]]:
         """
         Пошук релевантних документів з оцінкою релевантності
 
@@ -200,3 +201,13 @@ class VectorStoreManager:
                 print(f"Документи з файлу '{source_file}' не знайдено")
         except Exception as e:
             print(f"✗ Помилка при видаленні документів: {e}")
+
+    @property
+    def store_type(self) -> str:
+        """
+        Повертає тип векторного сховища
+
+        Returns:
+            str: "ChromaDB"
+        """
+        return "ChromaDB"
