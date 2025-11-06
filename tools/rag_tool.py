@@ -2,8 +2,8 @@
 RAG Tool - інструмент для пошуку інформації в завантажених PDF документах
 """
 from crewai.tools import BaseTool
-from typing import Type
-from pydantic import BaseModel, Field
+from typing import Type, Optional
+from pydantic import BaseModel, Field, PrivateAttr
 from utils.vector_store import VectorStoreManager
 
 
@@ -22,16 +22,17 @@ class RAGSearchTool(BaseTool):
         "'які деталі про...', 'що написано в документі про...'"
     )
     args_schema: Type[BaseModel] = RAGSearchInput
+    _vector_store_manager: Optional[VectorStoreManager] = PrivateAttr(default=None)
 
-    def __init__(self, vector_store_manager: VectorStoreManager = None):
+    def __init__(self, vector_store_manager: VectorStoreManager = None, **kwargs):
         """
         Ініціалізація RAG tool
 
         Args:
             vector_store_manager: Менеджер векторного сховища
         """
-        super().__init__()
-        self.vector_store_manager = vector_store_manager or VectorStoreManager()
+        super().__init__(**kwargs)
+        self._vector_store_manager = vector_store_manager or VectorStoreManager()
 
     def _run(self, query: str) -> str:
         """
@@ -44,7 +45,7 @@ class RAGSearchTool(BaseTool):
             str: Результати пошуку
         """
         # Перевіряємо, чи є документи в базі
-        doc_count = self.vector_store_manager.get_collection_count()
+        doc_count = self._vector_store_manager.get_collection_count()
 
         if doc_count == 0:
             return (
@@ -53,7 +54,7 @@ class RAGSearchTool(BaseTool):
             )
 
         # Виконуємо пошук
-        results = self.vector_store_manager.search_with_scores(query, k=4)
+        results = self._vector_store_manager.search_with_scores(query, k=4)
 
         if not results:
             return (
