@@ -222,7 +222,7 @@ class RAGKubernetesTester:
         scores = []
         for doc, score in results_with_scores:
             contexts.append(doc.page_content)
-            scores.append(score)
+            scores.append(float(score))  # Convert to Python float for JSON serialization
 
         # Генеруємо відповідь
         context_text = "\n\n".join(contexts)
@@ -246,10 +246,10 @@ Answer:"""
             "answer": answer,
             "contexts": contexts,
             "scores": scores,
-            "avg_score": sum(scores) / len(scores) if scores else 0,
-            "search_time_ms": search_time * 1000,
-            "generation_time_ms": generation_time * 1000,
-            "total_time_ms": (search_time + generation_time) * 1000
+            "avg_score": float(sum(scores) / len(scores)) if scores else 0.0,
+            "search_time_ms": float(search_time * 1000),
+            "generation_time_ms": float(generation_time * 1000),
+            "total_time_ms": float((search_time + generation_time) * 1000)
         }
 
     def run_comparison_test(self, questions: List[str] = None) -> Dict[str, Any]:
@@ -331,21 +331,21 @@ Answer:"""
 
         # Обчислюємо статистику
         results["summary"]["chromadb"] = {
-            "avg_time_ms": sum(chromadb_times) / len(chromadb_times),
-            "avg_score": sum(chromadb_scores) / len(chromadb_scores),
-            "total_time_s": sum(chromadb_times) / 1000
+            "avg_time_ms": float(sum(chromadb_times) / len(chromadb_times)),
+            "avg_score": float(sum(chromadb_scores) / len(chromadb_scores)),
+            "total_time_s": float(sum(chromadb_times) / 1000)
         }
 
         results["summary"]["faiss"] = {
-            "avg_time_ms": sum(faiss_times) / len(faiss_times),
-            "avg_score": sum(faiss_scores) / len(faiss_scores),
-            "total_time_s": sum(faiss_times) / 1000
+            "avg_time_ms": float(sum(faiss_times) / len(faiss_times)),
+            "avg_score": float(sum(faiss_scores) / len(faiss_scores)),
+            "total_time_s": float(sum(faiss_times) / 1000)
         }
 
         # Порівняння
         results["summary"]["comparison"] = {
-            "speedup_factor": results["summary"]["chromadb"]["avg_time_ms"] / results["summary"]["faiss"]["avg_time_ms"],
-            "score_difference": results["summary"]["chromadb"]["avg_score"] - results["summary"]["faiss"]["avg_score"],
+            "speedup_factor": float(results["summary"]["chromadb"]["avg_time_ms"] / results["summary"]["faiss"]["avg_time_ms"]),
+            "score_difference": float(results["summary"]["chromadb"]["avg_score"] - results["summary"]["faiss"]["avg_score"]),
             "faster_store": "faiss" if results["summary"]["faiss"]["avg_time_ms"] < results["summary"]["chromadb"]["avg_time_ms"] else "chromadb",
             "better_score": "chromadb" if results["summary"]["chromadb"]["avg_score"] > results["summary"]["faiss"]["avg_score"] else "faiss"
         }
