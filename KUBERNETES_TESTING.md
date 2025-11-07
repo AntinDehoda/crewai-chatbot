@@ -38,9 +38,31 @@ data/pdf/
 
 ### 2. Run the Test
 
+**Basic usage (uses existing data if available):**
 ```bash
 python test_rag_kubernetes.py
 ```
+
+**Command-line options:**
+```bash
+# Clear both databases before testing
+python test_rag_kubernetes.py --clear-stores
+
+# Force reload PDFs even if data exists
+python test_rag_kubernetes.py --force-reload
+
+# Clear databases AND force reload
+python test_rag_kubernetes.py --clear-stores --force-reload
+
+# Show help
+python test_rag_kubernetes.py --help
+```
+
+**When to use what:**
+- No flags: Fastest - uses existing data if available
+- `--clear-stores`: Fresh start - clears ChromaDB and FAISS before loading
+- `--force-reload`: Reload PDFs even if documents exist in stores
+- Both flags: Complete clean slate - clear everything and reload from PDFs
 
 ### 3. View Results
 
@@ -369,14 +391,32 @@ KUBERNETES_QUESTIONS = [
 ]
 ```
 
+### Clearing Databases
+
+Clear existing ChromaDB and FAISS databases before testing:
+
+```bash
+python test_rag_kubernetes.py --clear-stores
+```
+
+**When to clear databases:**
+- After changing chunk_size or chunk_overlap
+- When PDFs have been significantly updated
+- To benchmark from scratch
+- When troubleshooting inconsistent results
+
 ### Force Reload Documents
 
-If you've updated PDFs:
+Force reload PDFs even if documents already exist:
 
-```python
-# In main() function
-tester.load_pdfs_to_stores(force_reload=True)
+```bash
+python test_rag_kubernetes.py --force-reload
 ```
+
+**Difference between flags:**
+- `--clear-stores`: Deletes all documents from both databases, then loads PDFs
+- `--force-reload`: Skips the "already loaded" check and reloads anyway (adds to existing)
+- Both together: Complete reset - clear databases then load fresh
 
 ### Programmatic Usage
 
