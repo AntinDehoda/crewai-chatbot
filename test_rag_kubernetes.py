@@ -2,8 +2,10 @@
 RAG Kubernetes Test - порівняння ChromaDB vs FAISS на Kubernetes документації
 """
 import os
+import sys
 import time
 import json
+import argparse
 from datetime import datetime
 from typing import List, Dict, Any
 from pathlib import Path
@@ -116,12 +118,13 @@ class RAGKubernetesTester:
         self.chromadb = None
         self.faiss = None
 
-    def load_pdfs_to_stores(self, force_reload: bool = False):
+    def load_pdfs_to_stores(self, force_reload: bool = False, clear_stores: bool = False):
         """
         Завантажує PDF документи до обох vector stores
 
         Args:
             force_reload: Примусово перезавантажити навіть якщо вже є документи
+            clear_stores: Очистити існуючі бази перед завантаженням
         """
         print("\n" + "="*80)
         print("📄 ЗАВАНТАЖЕННЯ PDF ДОКУМЕНТІВ")
@@ -133,6 +136,27 @@ class RAGKubernetesTester:
         self.faiss = create_vector_store("faiss", index_name="kubernetes_docs")
         print("✓ Vector stores ініціалізовано\n")
 
+        # Очищуємо бази якщо потрібно
+        if clear_stores:
+            print("🗑️  Очищення існуючих баз даних...")
+            chromadb_count_before = self.chromadb.get_collection_count()
+            faiss_count_before = self.faiss.get_collection_count()
+
+            if chromadb_count_before > 0 or faiss_count_before > 0:
+                print(f"  ChromaDB: {chromadb_count_before} документів → видалення...")
+                self.chromadb.delete_collection()
+                # Reinitialize after deletion
+                self.chromadb = create_vector_store("chromadb", collection_name="kubernetes_docs")
+
+                print(f"  FAISS: {faiss_count_before} документів → видалення...")
+                self.faiss.delete_collection()
+                # Reinitialize after deletion
+                self.faiss = create_vector_store("faiss", index_name="kubernetes_docs")
+
+                print("✓ Бази даних очищено\n")
+            else:
+                print("  Бази даних порожні, очищення не потрібне\n")
+
         # Перевіряємо чи вже є документи
         chromadb_count = self.chromadb.get_collection_count()
         faiss_count = self.faiss.get_collection_count()
@@ -141,7 +165,9 @@ class RAGKubernetesTester:
             print(f"✓ Документи вже завантажені:")
             print(f"  ChromaDB: {chromadb_count} документів")
             print(f"  FAISS: {faiss_count} документів")
-            print("\n  Використовуємо існуючі дані. Для перезавантаження запустіть з force_reload=True\n")
+            print("\n  Використовуємо існуючі дані.")
+            print("  Для перезавантаження: --force-reload")
+            print("  Для очищення баз: --clear-stores\n")
             return
 
         # Знаходимо PDF файли
@@ -398,6 +424,30 @@ Answer:"""
 def main():
     """Головна функція"""
 
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(
+        description='Kubernetes RAG Testing - Compare ChromaDB vs FAISS',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python test_rag_kubernetes.py                    # Use existing data if available
+  python test_rag_kubernetes.py --clear-stores     # Clear databases and reload PDFs
+  python test_rag_kubernetes.py --force-reload     # Force reload PDFs even if data exists
+  python test_rag_kubernetes.py --clear-stores --force-reload  # Clear and reload
+        """
+    )
+    parser.add_argument(
+        '--clear-stores',
+        action='store_true',
+        help='Clear existing ChromaDB and FAISS databases before loading PDFs'
+    )
+    parser.add_argument(
+        '--force-reload',
+        action='store_true',
+        help='Force reload PDFs even if documents already exist in stores'
+    )
+    args = parser.parse_args()
+
     print("\n" + "="*80)
     print(" "*20 + "🧪 KUBERNETES RAG TESTING")
     print("="*80 + "\n")
@@ -407,7 +457,10 @@ def main():
     tester = RAGKubernetesTester(config)
 
     # Завантажуємо PDF документи
-    tester.load_pdfs_to_stores(force_reload=False)
+    tester.load_pdfs_to_stores(
+        force_reload=args.force_reload,
+        clear_stores=args.clear_stores
+    )
 
     # Перевіряємо чи є документи
     if tester.chromadb.get_collection_count() == 0 or tester.faiss.get_collection_count() == 0:
