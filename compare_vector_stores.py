@@ -1,9 +1,11 @@
 """
 Quick Comparison Tool - швидке порівняння ChromaDB vs FAISS
+Використовує Kubernetes документацію з папки data/pdf/
 """
 import os
 import time
 from typing import List, Dict
+from pathlib import Path
 import pandas as pd
 from dotenv import load_dotenv
 
@@ -200,33 +202,54 @@ def print_comparison_table(df: pd.DataFrame):
 def main():
     """Головна функція"""
 
-    # Тестові запити
+    # Kubernetes тестові запити
     test_queries = [
-        "Що таке векторна база даних?",
-        "Як працює семантичний пошук?",
-        "Які переваги використання embeddings?",
-        "Що таке RAG система?",
-        "Як вибрати розмір chunk'ів для документів?"
+        "What is Kubernetes?",
+        "What is a Pod in Kubernetes?",
+        "What is the difference between a Pod and a Container?",
+        "What is a Deployment in Kubernetes?",
+        "What is a Service in Kubernetes?",
+        "What are the types of Kubernetes Services?",
+        "What is an Ingress?",
+        "How do you perform a rolling update?",
+        "What are the best practices for managing secrets in Kubernetes?",
+        "How do you implement auto-scaling in Kubernetes?",
     ]
 
-    # Шляхи до PDF файлів
-    pdf_paths = [
-        # Додайте шляхи до ваших PDF файлів тут
-        # "path/to/document1.pdf",
-        # "path/to/document2.pdf",
-    ]
+    # Автоматично завантажуємо всі PDF з папки data/pdf/
+    pdf_folder = Path("data/pdf")
+    if not pdf_folder.exists():
+        print("\n" + "="*60)
+        print("⚠️  ПАПКА data/pdf/ НЕ ЗНАЙДЕНА")
+        print("="*60)
+        print("\nСтворіть папку data/pdf/ та додайте туди Kubernetes PDF документи")
+        print("\nПриклад структури:")
+        print("   data/pdf/")
+        print("       ├── kubernetes-basics.pdf")
+        print("       ├── kubernetes-networking.pdf")
+        print("       └── kubernetes-storage.pdf\n")
+        return
+
+    pdf_paths = list(pdf_folder.glob("*.pdf"))
 
     if not pdf_paths:
         print("\n" + "="*60)
-        print("⚠️  НАЛАШТУВАННЯ НЕОБХІДНЕ")
+        print("⚠️  PDF ФАЙЛИ НЕ ЗНАЙДЕНО")
         print("="*60)
-        print("\nДодайте шляхи до PDF файлів у змінну pdf_paths")
-        print("у функції main():\n")
-        print("   pdf_paths = [")
-        print("       'path/to/document1.pdf',")
-        print("       'path/to/document2.pdf',")
-        print("   ]\n")
+        print("\nДодайте Kubernetes PDF документи в папку data/pdf/")
+        print("\nРекомендовані джерела:")
+        print("   - Official Kubernetes documentation exports")
+        print("   - Kubernetes in Action (book)")
+        print("   - Kubernetes patterns documentation\n")
         return
+
+    print(f"\n📚 Знайдено {len(pdf_paths)} PDF файл(ів) в data/pdf/:")
+    for pdf_path in pdf_paths:
+        print(f"   • {pdf_path.name}")
+    print()
+
+    # Конвертуємо Path об'єкти в рядки
+    pdf_paths = [str(p) for p in pdf_paths]
 
     # Створюємо компаратор
     comparator = VectorStoreComparator()

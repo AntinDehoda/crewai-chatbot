@@ -1,9 +1,11 @@
 """
 RAG Evaluation Script - оцінка якості RAG систем з використанням ragas
+Використовує Kubernetes документацію з папки data/pdf/
 """
 import os
 import time
 from typing import List, Dict, Any
+from pathlib import Path
 from dotenv import load_dotenv
 from datasets import Dataset
 import pandas as pd
@@ -273,39 +275,91 @@ def print_comparison_summary(results_df: pd.DataFrame):
 
 # Приклад використання
 if __name__ == "__main__":
-    # Тестові запитання
+    # Kubernetes тестові запитання з ground truth
     test_questions = [
         {
-            "question": "Що таке RAG?",
-            "ground_truth": "RAG (Retrieval-Augmented Generation) - це техніка, яка поєднує пошук релевантних документів з генерацією відповідей."
+            "question": "What is Kubernetes?",
+            "ground_truth": "Kubernetes is an open-source container orchestration platform for automating deployment, scaling, and management of containerized applications."
         },
         {
-            "question": "Які переваги використання векторних баз даних?",
-            "ground_truth": "Векторні бази даних дозволяють ефективно шукати семантично подібні документи."
+            "question": "What is a Pod in Kubernetes?",
+            "ground_truth": "A Pod is the smallest deployable unit in Kubernetes, representing one or more containers that share network and storage resources."
         },
         {
-            "question": "Як працює семантичний пошук?",
-            "ground_truth": "Семантичний пошук використовує embeddings для знаходження документів з подібним значенням."
-        }
+            "question": "What is the difference between a Pod and a Container?",
+            "ground_truth": "A Container is a single application instance, while a Pod can contain one or more tightly coupled containers that share resources and run together on the same node."
+        },
+        {
+            "question": "What is a Deployment in Kubernetes?",
+            "ground_truth": "A Deployment is a Kubernetes resource that manages ReplicaSets and provides declarative updates for Pods, enabling rolling updates and rollbacks."
+        },
+        {
+            "question": "What is a Service in Kubernetes?",
+            "ground_truth": "A Service is an abstraction that defines a logical set of Pods and a policy for accessing them, providing stable network endpoints for dynamic Pod sets."
+        },
+        {
+            "question": "What are the types of Kubernetes Services?",
+            "ground_truth": "The main types are ClusterIP (internal), NodePort (exposes on node port), LoadBalancer (external load balancer), and ExternalName (DNS alias)."
+        },
+        {
+            "question": "What is an Ingress?",
+            "ground_truth": "Ingress is a Kubernetes resource that manages external HTTP/HTTPS access to services, providing routing rules, SSL termination, and name-based virtual hosting."
+        },
+        {
+            "question": "How do you perform a rolling update?",
+            "ground_truth": "Rolling updates are performed by updating the Deployment specification, which gradually replaces old Pods with new ones while maintaining availability."
+        },
+        {
+            "question": "What are the best practices for managing secrets in Kubernetes?",
+            "ground_truth": "Best practices include using Secrets resources, encrypting data at rest, using RBAC for access control, rotating secrets regularly, and considering external secret management tools."
+        },
+        {
+            "question": "How do you implement auto-scaling in Kubernetes?",
+            "ground_truth": "Auto-scaling can be implemented using Horizontal Pod Autoscaler (HPA) for scaling Pods based on metrics, and Cluster Autoscaler for scaling nodes."
+        },
     ]
 
-    # Шляхи до PDF файлів
-    pdf_paths = [
-        # Додайте шляхи до ваших PDF файлів
-        # "path/to/document1.pdf",
-        # "path/to/document2.pdf",
-    ]
+    # Автоматично завантажуємо всі PDF з папки data/pdf/
+    pdf_folder = Path("data/pdf")
+    if not pdf_folder.exists():
+        print("\n" + "="*60)
+        print("⚠️  ПАПКА data/pdf/ НЕ ЗНАЙДЕНА")
+        print("="*60)
+        print("\nСтворіть папку data/pdf/ та додайте туди Kubernetes PDF документи")
+        print("\nПриклад структури:")
+        print("   data/pdf/")
+        print("       ├── kubernetes-basics.pdf")
+        print("       ├── kubernetes-networking.pdf")
+        print("       └── kubernetes-storage.pdf\n")
+        exit(1)
+
+    pdf_paths = list(pdf_folder.glob("*.pdf"))
 
     if not pdf_paths:
-        print("⚠️  Додайте шляхи до PDF файлів у змінну pdf_paths")
-        print("   Приклад: pdf_paths = ['document.pdf']")
-    else:
-        # Порівнюємо векторні сховища
-        results = compare_vector_stores(pdf_paths, test_questions)
+        print("\n" + "="*60)
+        print("⚠️  PDF ФАЙЛИ НЕ ЗНАЙДЕНО")
+        print("="*60)
+        print("\nДодайте Kubernetes PDF документи в папку data/pdf/")
+        print("\nРекомендовані джерела:")
+        print("   - Official Kubernetes documentation exports")
+        print("   - Kubernetes in Action (book)")
+        print("   - Kubernetes patterns documentation\n")
+        exit(1)
 
-        # Виводимо зведені результати
-        print_comparison_summary(results)
+    print(f"\n📚 Знайдено {len(pdf_paths)} PDF файл(ів) в data/pdf/:")
+    for pdf_path in pdf_paths:
+        print(f"   • {pdf_path.name}")
+    print()
 
-        # Зберігаємо детальні результати
-        results.to_csv("rag_evaluation_results.csv", index=False)
-        print("✓ Детальні результати збережено в rag_evaluation_results.csv")
+    # Конвертуємо Path об'єкти в рядки
+    pdf_paths = [str(p) for p in pdf_paths]
+
+    # Порівнюємо векторні сховища
+    results = compare_vector_stores(pdf_paths, test_questions)
+
+    # Виводимо зведені результати
+    print_comparison_summary(results)
+
+    # Зберігаємо детальні результати
+    results.to_csv("rag_evaluation_results.csv", index=False)
+    print("✓ Детальні результати збережено в rag_evaluation_results.csv")

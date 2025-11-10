@@ -105,13 +105,24 @@ results = vector_store.search(query, k=4)
 
 ## Performance Comparison
 
+This project includes **three comparison tools** for evaluating vector stores:
+
+1. **`compare_vector_stores.py`** - Quick performance benchmark (speed, loading, relevance)
+2. **`evaluate_rag.py`** - Detailed RAGAS metrics evaluation (faithfulness, context quality)
+3. **`test_rag_kubernetes.py`** - Comprehensive Kubernetes-specific testing with 40 questions
+
 ### Quick Benchmark Tool
 
-Use `compare_vector_stores.py` for fast performance comparison:
+Use `compare_vector_stores.py` for fast performance comparison on Kubernetes documentation:
 
 ```bash
 python compare_vector_stores.py
 ```
+
+**Prerequisites:**
+- Add Kubernetes PDF files to `data/pdf/` folder
+- The script automatically loads all PDFs from this folder
+- Uses 10 Kubernetes-specific test questions
 
 **Measures:**
 - Document loading speed (chunks/second)
@@ -159,21 +170,28 @@ python compare_vector_stores.py
 
 ### Running RAGAS Evaluation
 
+Evaluates both ChromaDB and FAISS using Kubernetes documentation:
+
 ```bash
 python evaluate_rag.py
 ```
 
-**Configure test questions in the script:**
+**Prerequisites:**
+- Add Kubernetes PDF files to `data/pdf/` folder
+- The script automatically loads all PDFs
+- Uses 10 Kubernetes questions with ground truth answers
+
+**Test questions example:**
 
 ```python
 test_questions = [
     {
-        "question": "Що таке RAG?",
-        "ground_truth": "RAG (Retrieval-Augmented Generation) - це техніка..."
+        "question": "What is Kubernetes?",
+        "ground_truth": "Kubernetes is an open-source container orchestration platform..."
     },
     {
-        "question": "Які переваги використання векторних баз даних?",
-        "ground_truth": "Векторні бази даних дозволяють..."
+        "question": "What is a Pod in Kubernetes?",
+        "ground_truth": "A Pod is the smallest deployable unit in Kubernetes..."
     }
 ]
 ```
