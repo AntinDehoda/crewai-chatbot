@@ -166,7 +166,6 @@ python compare_vector_stores.py
 - **Answer Relevancy**: Відповідь релевантна до запитання
 - **Context Precision**: Релевантність витягнутого контексту
 - **Context Recall**: Чи весь необхідний контекст витягнуто
-- **Context Relevancy**: Наскільки контекст відповідає запитанню
 
 ### Running RAGAS Evaluation
 

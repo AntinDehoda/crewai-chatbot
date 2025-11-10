@@ -15,8 +15,7 @@ from ragas.metrics import (
     faithfulness,
     answer_relevancy,
     context_precision,
-    context_recall,
-    context_relevancy
+    context_recall
 )
 
 from utils import create_vector_store
@@ -135,8 +134,7 @@ class RAGEvaluator:
                 faithfulness,
                 answer_relevancy,
                 context_precision,
-                context_recall,
-                context_relevancy
+                context_recall
             ]
 
         print(f"\n🔍 Оцінка RAG системи ({self.vector_store_type})...")
