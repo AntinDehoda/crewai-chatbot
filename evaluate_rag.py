@@ -252,10 +252,18 @@ def print_comparison_summary(results_df: pd.DataFrame):
     print("ЗВЕДЕНІ РЕЗУЛЬТАТИ ПОРІВНЯННЯ")
     print("="*60 + "\n")
 
-    # Групуємо по vector_store та обчислюємо середні значення
-    metric_columns = [col for col in results_df.columns
-                     if col not in ['question', 'answer', 'contexts', 'ground_truth', 'vector_store']]
+    # Вибираємо тільки числові колонки (метрики)
+    numeric_cols = results_df.select_dtypes(include=['float64', 'int64', 'float32', 'int32']).columns.tolist()
 
+    # Виключаємо vector_store якщо вона числова (не повинна бути)
+    metric_columns = [col for col in numeric_cols if col != 'vector_store']
+
+    if not metric_columns:
+        print("⚠️  Не знайдено числових метрик для порівняння")
+        print(f"   Доступні колонки: {results_df.columns.tolist()}\n")
+        return
+
+    # Групуємо по vector_store та обчислюємо середні значення
     summary = results_df.groupby('vector_store')[metric_columns].mean()
 
     print(summary.to_string())
