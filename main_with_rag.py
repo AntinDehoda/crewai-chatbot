@@ -9,6 +9,7 @@ from agents.conversation_agent import create_conversation_agent
 from tools.rag_tool import create_rag_tool
 from utils.vector_store import VectorStoreManager
 from utils.pdf_processor import PDFProcessor
+from utils.greeting_generator import generate_greeting_with_documents
 
 # Завантаження змінних оточення
 load_dotenv()
@@ -195,7 +196,10 @@ def main():
 
                 elif cmd == 'chat':
                     chat_mode = True
-                    print("\n💬 Режим чату активовано (введіть 'exit' для виходу)")
+                    print("\n💬 Режим чату активовано (введіть 'exit' для виходу)\n")
+                    # Показуємо привітання з інформацією про документи
+                    greeting = generate_greeting_with_documents(vector_store, use_llm=False)
+                    print(greeting)
 
                 elif cmd == 'upload':
                     if len(parts) < 2:

@@ -7,6 +7,7 @@ from agents.conversation_agent import create_conversation_agent
 from tools.rag_tool import create_rag_tool
 from utils.pdf_processor import PDFProcessor
 from utils.vector_store import VectorStoreManager
+from utils.greeting_generator import generate_greeting_with_documents
 
 # Завантаження змінних оточення
 load_dotenv()
@@ -177,6 +178,11 @@ with col2:
     if st.button("🔄 Очистити чат"):
         st.session_state.messages = []
         st.rerun()
+
+# Відображення привітання, якщо чат порожній
+if len(st.session_state.messages) == 0:
+    greeting = generate_greeting_with_documents(st.session_state.vector_store, use_llm=False)
+    st.session_state.messages.append({"role": "assistant", "content": greeting})
 
 # Відображення історії чату
 for message in st.session_state.messages:

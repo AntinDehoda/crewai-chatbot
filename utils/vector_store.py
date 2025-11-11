@@ -202,6 +202,63 @@ class VectorStoreManager(BaseVectorStore):
         except Exception as e:
             print(f"✗ Помилка при видаленні документів: {e}")
 
+    def get_documents_summary(self) -> dict:
+        """
+        Отримує детальну інформацію про завантажені документи
+
+        Returns:
+            dict: Словник з інформацією про документи:
+                - count: загальна кількість чанків
+                - files: список файлів з інформацією про кожен
+                - has_documents: чи є документи в базі
+        """
+        try:
+            collection = self.vector_store._collection
+            results = collection.get()
+
+            total_count = len(results.get("ids", []))
+
+            # Групуємо по файлам
+            files_info = {}
+            if results and "metadatas" in results:
+                for i, metadata in enumerate(results["metadatas"]):
+                    if metadata and "source_file" in metadata:
+                        source_file = metadata["source_file"]
+
+                        if source_file not in files_info:
+                            files_info[source_file] = {
+                                "name": source_file,
+                                "chunks": 0,
+                                "pages": set()
+                            }
+
+                        files_info[source_file]["chunks"] += 1
+
+                        if "page" in metadata:
+                            files_info[source_file]["pages"].add(metadata["page"])
+
+            # Конвертуємо set в list для JSON сериалізації
+            files_list = []
+            for file_info in files_info.values():
+                file_info["pages"] = sorted(list(file_info["pages"]))
+                file_info["page_count"] = len(file_info["pages"])
+                files_list.append(file_info)
+
+            return {
+                "count": total_count,
+                "files": sorted(files_list, key=lambda x: x["name"]),
+                "has_documents": total_count > 0,
+                "file_count": len(files_list)
+            }
+        except Exception as e:
+            print(f"Помилка при отриманні інформації про документи: {e}")
+            return {
+                "count": 0,
+                "files": [],
+                "has_documents": False,
+                "file_count": 0
+            }
+
     @property
     def store_type(self) -> str:
         """
