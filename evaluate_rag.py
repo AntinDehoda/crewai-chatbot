@@ -367,5 +367,5 @@ if __name__ == "__main__":
     print_comparison_summary(results)
 
     # Зберігаємо детальні результати
-    results.to_csv("rag_evaluation_results.csv", index=False)
-    print("✓ Детальні результати збережено в rag_evaluation_results.csv")
+    results.to_csv("test_results/rag_evaluation_results.csv", index=False)
+    print("✓ Детальні результати збережено в test_results/rag_evaluation_results.csv")

@@ -261,8 +261,8 @@ def main():
     print_comparison_table(results_df)
 
     # Зберігаємо результати
-    results_df.to_csv("vector_store_comparison.csv", index=False)
-    print("✓ Результати збережено в vector_store_comparison.csv\n")
+    results_df.to_csv("test_results/vector_store_comparison.csv", index=False)
+    print("✓ Результати збережено в test_results/vector_store_comparison.csv\n")
 
 
 if __name__ == "__main__":
