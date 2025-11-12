@@ -41,11 +41,11 @@ python run_all_rag_tests.py
 **Output files:**
 ```
 test_results/
-├── rag_tests_summary_YYYYMMDD_HHMMSS.txt    # Human-readable summary report
-├── rag_tests_summary_YYYYMMDD_HHMMSS.json   # Structured data with all results
-├── vector_store_comparison.csv              # From compare_vector_stores.py
-├── rag_evaluation_summary.txt               # From evaluate_rag.py (analytical summary only)
-└── kubernetes_rag_test_YYYYMMDD_HHMMSS.json # From test_rag_kubernetes.py
+├── rag_tests_summary_YYYYMMDD_HHMMSS.txt          # Human-readable summary report
+├── rag_tests_summary_YYYYMMDD_HHMMSS.json         # Structured data with all results
+├── vector_store_comparison_YYYYMMDD_HHMMSS.txt    # From compare_vector_stores.py
+├── rag_evaluation_summary.txt                     # From evaluate_rag.py
+└── kubernetes_rag_test_YYYYMMDD_HHMMSS.json       # From test_rag_kubernetes.py
 ```
 
 **Sample Summary Report:**
@@ -62,7 +62,7 @@ test_results/
 1. QUICK PERFORMANCE BENCHMARK (compare_vector_stores.py)
 --------------------------------------------------------------------------------
    Статус: ✓ Успішно завершено за 45.23с
-   Результати: test_results/vector_store_comparison.csv
+   Результати: test_results/vector_store_comparison_20250115_143000.txt
 
    Основні метрики:
 
@@ -202,6 +202,11 @@ python compare_vector_stores.py
    Найшвидший пошук: FAISS (12.87 ms)
    Найкраща релевантність: CHROMADB (0.8234)
 ```
+
+**Output file:**
+- Results saved to: `test_results/vector_store_comparison_YYYYMMDD_HHMMSS.txt`
+- Format: Analytical summary with timestamp in filename
+- Contains: Performance metrics, winners, and conclusions
 
 ---
 

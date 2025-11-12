@@ -4,6 +4,7 @@ Quick Comparison Tool - швидке порівняння ChromaDB vs FAISS
 """
 import os
 import time
+from datetime import datetime
 from typing import List, Dict
 from pathlib import Path
 import pandas as pd
@@ -199,6 +200,127 @@ def print_comparison_table(df: pd.DataFrame):
     print("="*80 + "\n")
 
 
+def save_summary_to_txt(df: pd.DataFrame, output_folder: str = "test_results") -> str:
+    """
+    Зберігає аналітичне summary у TXT файл з timestamp
+
+    Args:
+        df: DataFrame з результатами порівняння
+        output_folder: Папка для збереження результатів
+
+    Returns:
+        str: Шлях до створеного файлу
+    """
+    # Створюємо папку якщо не існує
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Генеруємо назву файлу з timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"vector_store_comparison_{timestamp}.txt"
+    filepath = os.path.join(output_folder, filename)
+
+    # Формуємо текст звіту
+    lines = []
+    lines.append("="*80)
+    lines.append(" "*15 + "QUICK PERFORMANCE BENCHMARK SUMMARY")
+    lines.append("="*80)
+    lines.append(f"\nЧас генерації: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    lines.append(f"Кількість vector stores: {len(df)}")
+    lines.append("\n" + "-"*80)
+    lines.append("ПОРІВНЯЛЬНА ТАБЛИЦЯ")
+    lines.append("-"*80 + "\n")
+
+    # Таблиця метрик
+    metrics = [
+        ("Векторне сховище", "vector_store", "{}"),
+        ("Завантажено chunk'ів", "total_chunks", "{:.0f}"),
+        ("Час завантаження (с)", "load_time_sec", "{:.3f}"),
+        ("Швидкість завант. (chunk/s)", "chunks_per_second", "{:.1f}"),
+        ("Середній час пошуку (ms)", "avg_search_time_ms", "{:.2f}"),
+        ("Середня релевантність", "avg_relevance_score", "{:.4f}"),
+    ]
+
+    # Виводимо дані для кожного vector store
+    for _, store_data in df.iterrows():
+        store_name = store_data["vector_store"]
+        lines.append(f"{store_name.upper()}:")
+        for label, key, fmt in metrics[1:]:  # Пропускаємо перший (vector_store)
+            value = store_data[key]
+            lines.append(f"  • {label:30s}: {fmt.format(value)}")
+        lines.append("")
+
+    # Визначаємо переможців
+    lines.append("-"*80)
+    lines.append("🏆 ПЕРЕМОЖЦІ")
+    lines.append("-"*80 + "\n")
+
+    # Швидкість завантаження
+    fastest_load = df.loc[df['chunks_per_second'].idxmax()]
+    slowest_load = df.loc[df['chunks_per_second'].idxmin()]
+    speedup_load = fastest_load['chunks_per_second'] / slowest_load['chunks_per_second']
+
+    lines.append("Найшвидше завантаження:")
+    lines.append(f"  Winner: {fastest_load['vector_store'].upper()}")
+    lines.append(f"  Швидкість: {fastest_load['chunks_per_second']:.1f} chunk/s")
+    lines.append(f"  Перевага: {speedup_load:.2f}x швидше\n")
+
+    # Швидкість пошуку
+    fastest_search = df.loc[df['avg_search_time_ms'].idxmin()]
+    slowest_search = df.loc[df['avg_search_time_ms'].idxmax()]
+    speedup_search = slowest_search['avg_search_time_ms'] / fastest_search['avg_search_time_ms']
+
+    lines.append("Найшвидший пошук:")
+    lines.append(f"  Winner: {fastest_search['vector_store'].upper()}")
+    lines.append(f"  Час пошуку: {fastest_search['avg_search_time_ms']:.2f} ms")
+    lines.append(f"  Перевага: {speedup_search:.2f}x швидше\n")
+
+    # Релевантність
+    best_relevance = df.loc[df['avg_relevance_score'].idxmax()]
+    worst_relevance = df.loc[df['avg_relevance_score'].idxmin()]
+    diff_relevance = best_relevance['avg_relevance_score'] - worst_relevance['avg_relevance_score']
+    diff_percent = (diff_relevance / worst_relevance['avg_relevance_score'] * 100) if worst_relevance['avg_relevance_score'] > 0 else 0
+
+    lines.append("Найкраща релевантність:")
+    lines.append(f"  Winner: {best_relevance['vector_store'].upper()}")
+    lines.append(f"  Score: {best_relevance['avg_relevance_score']:.4f}")
+    lines.append(f"  Перевага: +{diff_relevance:.4f} (+{diff_percent:.1f}%)\n")
+
+    # Висновки
+    lines.append("-"*80)
+    lines.append("ВИСНОВКИ")
+    lines.append("-"*80 + "\n")
+
+    # Рахуємо переможців
+    wins = {}
+    for _, store_data in df.iterrows():
+        store = store_data['vector_store']
+        wins[store] = 0
+
+    wins[fastest_load['vector_store']] += 1
+    wins[fastest_search['vector_store']] += 1
+    wins[best_relevance['vector_store']] += 1
+
+    for store in wins:
+        lines.append(f"{store.upper()}:")
+        lines.append(f"  Виграно категорій: {wins[store]}/3")
+
+    lines.append("\n" + "="*80)
+    lines.append("ОПИС МЕТРИК:")
+    lines.append("="*80)
+    lines.append("• Швидкість завантаження - Скільки chunk'ів на секунду може завантажити")
+    lines.append("• Швидкість пошуку       - Середній час пошуку релевантних документів")
+    lines.append("• Релевантність          - Якість знайдених документів (similarity score)")
+    lines.append("="*80 + "\n")
+
+    # Записуємо у файл
+    with open(filepath, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(lines))
+
+    print(f"✓ Аналітичне summary збережено в {filepath}")
+
+    return filepath
+
+
 def main():
     """Головна функція"""
 
@@ -260,9 +382,8 @@ def main():
     # Виводимо результати
     print_comparison_table(results_df)
 
-    # Зберігаємо результати
-    results_df.to_csv("test_results/vector_store_comparison.csv", index=False)
-    print("✓ Результати збережено в test_results/vector_store_comparison.csv\n")
+    # Зберігаємо аналітичне summary у TXT з timestamp
+    save_summary_to_txt(results_df)
 
 
 if __name__ == "__main__":

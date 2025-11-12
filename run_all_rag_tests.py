@@ -90,44 +90,96 @@ class RAGTestRunner:
             return False, duration, error_msg
 
     def read_comparison_results(self) -> Optional[Dict]:
-        """Читає результати compare_vector_stores.py"""
-        csv_path = self.results_folder / "vector_store_comparison.csv"
+        """Читає результати compare_vector_stores.py з TXT файлу"""
+        # Знаходимо найновіший файл результатів
+        txt_files = list(self.results_folder.glob("vector_store_comparison_*.txt"))
 
-        if not csv_path.exists():
+        if not txt_files:
             return None
 
+        # Беремо найновіший файл
+        latest_file = max(txt_files, key=lambda p: p.stat().st_mtime)
+
         try:
-            df = pd.read_csv(csv_path)
+            with open(latest_file, 'r', encoding='utf-8') as f:
+                content = f.read()
 
             summary = {
                 "chromadb": {},
                 "faiss": {},
-                "winners": {}
+                "winners": {},
+                "file": latest_file.name
             }
 
-            for _, row in df.iterrows():
-                store = row['vector_store']
-                summary[store] = {
-                    "load_time_sec": float(row['load_time_sec']),
-                    "chunks_per_second": float(row['chunks_per_second']),
-                    "avg_search_time_ms": float(row['avg_search_time_ms']),
-                    "avg_relevance_score": float(row['avg_relevance_score'])
-                }
+            # Парсимо метрики для кожного vector store
+            current_store = None
+            for line in content.split('\n'):
+                line = line.strip()
 
-            # Визначаємо переможців
-            chromadb = summary['chromadb']
-            faiss = summary['faiss']
+                # Визначаємо поточний store
+                if line.startswith('CHROMADB:'):
+                    current_store = 'chromadb'
+                elif line.startswith('FAISS:'):
+                    current_store = 'faiss'
+                # Парсимо метрики
+                elif current_store and line.startswith('•'):
+                    # Формат: • Завантажено chunk'ів            : 500
+                    parts = line.split(':')
+                    if len(parts) == 2:
+                        metric_name = parts[0].replace('•', '').strip()
+                        metric_value = parts[1].strip()
+                        try:
+                            # Мапінг українських назв на ключі
+                            metric_map = {
+                                "Завантажено chunk'ів": "total_chunks",
+                                "Час завантаження (с)": "load_time_sec",
+                                "Швидкість завант. (chunk/s)": "chunks_per_second",
+                                "Середній час пошуку (ms)": "avg_search_time_ms",
+                                "Середня релевантність": "avg_relevance_score"
+                            }
+                            if metric_name in metric_map:
+                                key = metric_map[metric_name]
+                                summary[current_store][key] = float(metric_value)
+                        except ValueError:
+                            pass
 
-            summary['winners'] = {
-                "fastest_loading": "faiss" if faiss['chunks_per_second'] > chromadb['chunks_per_second'] else "chromadb",
-                "fastest_search": "faiss" if faiss['avg_search_time_ms'] < chromadb['avg_search_time_ms'] else "chromadb",
-                "best_relevance": "chromadb" if chromadb['avg_relevance_score'] > faiss['avg_relevance_score'] else "faiss"
-            }
+            # Парсимо переможців
+            lines = content.split('\n')
+            in_winners_section = False
+            current_category = None
+
+            for i, line in enumerate(lines):
+                line = line.strip()
+
+                if '🏆 ПЕРЕМОЖЦІ' in line:
+                    in_winners_section = True
+                    continue
+
+                if in_winners_section:
+                    # Виходимо з секції переможців
+                    if 'ВИСНОВКИ' in line:
+                        break
+
+                    # Категорія переможця
+                    if line in ['Найшвидше завантаження:', 'Найшвидший пошук:', 'Найкраща релевантність:']:
+                        current_category = line.rstrip(':')
+                    # Winner: FAISS
+                    elif current_category and line.startswith('Winner:'):
+                        winner_store = line.split(':')[1].strip().lower()
+
+                        # Мапінг категорій на ключі
+                        category_map = {
+                            'Найшвидше завантаження': 'fastest_loading',
+                            'Найшвидший пошук': 'fastest_search',
+                            'Найкраща релевантність': 'best_relevance'
+                        }
+                        if current_category in category_map:
+                            summary['winners'][category_map[current_category]] = winner_store
 
             return summary
 
         except Exception as e:
-            print(f"⚠️  Помилка читання {csv_path}: {e}")
+            print(f"⚠️  Помилка читання {latest_file}: {e}")
             return None
 
     def read_evaluation_results(self) -> Optional[Dict]:
@@ -460,8 +512,10 @@ class RAGTestRunner:
             'error': error
         }
         if success:
-            self.summary['results_files']['comparison'] = "test_results/vector_store_comparison.csv"
-            self.summary['comparison_results'] = self.read_comparison_results()
+            comp_results = self.read_comparison_results()
+            if comp_results:
+                self.summary['results_files']['comparison'] = f"test_results/{comp_results.get('file', 'vector_store_comparison.txt')}"
+                self.summary['comparison_results'] = comp_results
 
         # 2. RAGAS Evaluation
         success, duration, error = self.run_script(
