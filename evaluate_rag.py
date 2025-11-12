@@ -4,6 +4,7 @@ RAG Evaluation Script - оцінка якості RAG систем з викор
 """
 import os
 import time
+from datetime import datetime
 from typing import List, Dict, Any
 from pathlib import Path
 from dotenv import load_dotenv
@@ -279,6 +280,97 @@ def print_comparison_summary(results_df: pd.DataFrame):
     print("\n" + "="*60 + "\n")
 
 
+def save_summary_to_txt(results_df: pd.DataFrame, output_path: str):
+    """
+    Зберігає аналітичне summary у TXT файл (без повних питань та відповідей)
+
+    Args:
+        results_df: DataFrame з результатами оцінки
+        output_path: Шлях до вихідного TXT файлу
+    """
+    # Вибираємо тільки числові колонки (метрики)
+    numeric_cols = results_df.select_dtypes(include=['float64', 'int64', 'float32', 'int32']).columns.tolist()
+    metric_columns = [col for col in numeric_cols if col != 'vector_store']
+
+    if not metric_columns:
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write("⚠️  Не знайдено числових метрик для порівняння\n")
+        return
+
+    # Групуємо по vector_store та обчислюємо середні значення
+    summary = results_df.groupby('vector_store')[metric_columns].mean()
+
+    # Формуємо текст звіту
+    lines = []
+    lines.append("="*80)
+    lines.append(" "*20 + "RAG EVALUATION SUMMARY (RAGAS METRICS)")
+    lines.append("="*80)
+    lines.append(f"\nЧас генерації: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    lines.append(f"Кількість питань оцінено: {len(results_df) // len(summary)}")
+    lines.append("\n" + "-"*80)
+    lines.append("СЕРЕДНІ ЗНАЧЕННЯ МЕТРИК")
+    lines.append("-"*80 + "\n")
+
+    # Виводимо метрики для кожного vector store
+    for store in summary.index:
+        lines.append(f"{store.upper()}:")
+        for metric in metric_columns:
+            value = summary.loc[store, metric]
+            lines.append(f"  • {metric:25s}: {value:.4f}")
+        lines.append("")
+
+    # Визначаємо переможців
+    lines.append("-"*80)
+    lines.append("🏆 ПЕРЕМОЖЦІ ПО МЕТРИКАМ")
+    lines.append("-"*80 + "\n")
+
+    for metric in metric_columns:
+        winner = summary[metric].idxmax()
+        winner_score = summary.loc[winner, metric]
+        loser_score = summary[metric].min()
+        diff = winner_score - loser_score
+        diff_percent = (diff / loser_score * 100) if loser_score > 0 else 0
+
+        lines.append(f"{metric}:")
+        lines.append(f"  Winner: {winner.upper()} ({winner_score:.4f})")
+        lines.append(f"  Перевага: +{diff:.4f} (+{diff_percent:.1f}%)")
+        lines.append("")
+
+    # Загальні висновки
+    lines.append("-"*80)
+    lines.append("ВИСНОВКИ")
+    lines.append("-"*80 + "\n")
+
+    # Підраховуємо скільки метрик виграв кожен store
+    wins = {}
+    for store in summary.index:
+        wins[store] = sum(1 for metric in metric_columns if summary[metric].idxmax() == store)
+
+    overall_winner = max(wins.items(), key=lambda x: x[1])
+    lines.append(f"Загальний переможець: {overall_winner[0].upper()}")
+    lines.append(f"  Виграно метрик: {overall_winner[1]}/{len(metric_columns)}")
+    lines.append("")
+
+    for store in summary.index:
+        lines.append(f"{store}:")
+        lines.append(f"  Виграно метрик: {wins[store]}/{len(metric_columns)}")
+
+    lines.append("\n" + "="*80)
+    lines.append("ОПИС МЕТРИК:")
+    lines.append("="*80)
+    lines.append("• faithfulness       - Наскільки відповідь базується на контексті (без галюцинацій)")
+    lines.append("• answer_relevancy   - Наскільки відповідь релевантна до запитання")
+    lines.append("• context_precision  - Точність витягнутого контексту")
+    lines.append("• context_recall     - Повнота витягнутого контексту")
+    lines.append("="*80 + "\n")
+
+    # Записуємо у файл
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(lines))
+
+    print(f"✓ Аналітичне summary збережено в {output_path}")
+
+
 # Приклад використання
 if __name__ == "__main__":
     # Kubernetes тестові запитання з ground truth
@@ -366,6 +458,6 @@ if __name__ == "__main__":
     # Виводимо зведені результати
     print_comparison_summary(results)
 
-    # Зберігаємо детальні результати
-    results.to_csv("test_results/rag_evaluation_results.csv", index=False)
-    print("✓ Детальні результати збережено в test_results/rag_evaluation_results.csv")
+    # Зберігаємо аналітичне summary у TXT
+    os.makedirs("test_results", exist_ok=True)
+    save_summary_to_txt(results, "test_results/rag_evaluation_summary.txt")

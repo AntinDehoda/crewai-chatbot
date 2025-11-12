@@ -131,44 +131,75 @@ class RAGTestRunner:
             return None
 
     def read_evaluation_results(self) -> Optional[Dict]:
-        """Читає результати evaluate_rag.py"""
-        csv_path = self.results_folder / "rag_evaluation_results.csv"
+        """Читає результати evaluate_rag.py з TXT файлу"""
+        txt_path = self.results_folder / "rag_evaluation_summary.txt"
 
-        if not csv_path.exists():
+        if not txt_path.exists():
             return None
 
         try:
-            df = pd.read_csv(csv_path)
+            with open(txt_path, 'r', encoding='utf-8') as f:
+                content = f.read()
 
-            # Вибираємо метрики
-            metric_columns = [col for col in df.columns
-                            if col not in ['vector_store', 'question', 'answer', 'contexts', 'ground_truth']]
+            summary = {
+                "chromadb": {},
+                "faiss": {},
+                "winners": {}
+            }
 
-            if not metric_columns:
-                return None
+            # Парсимо метрики для кожного vector store
+            current_store = None
+            for line in content.split('\n'):
+                line = line.strip()
 
-            # Групуємо по vector_store
-            summary = {}
-            for store in df['vector_store'].unique():
-                store_data = df[df['vector_store'] == store]
-                summary[store] = {}
-                for metric in metric_columns:
-                    if metric in store_data.columns:
-                        summary[store][metric] = float(store_data[metric].mean())
+                # Визначаємо поточний store
+                if line.startswith('CHROMADB:'):
+                    current_store = 'chromadb'
+                elif line.startswith('FAISS:'):
+                    current_store = 'faiss'
+                # Парсимо метрики
+                elif current_store and line.startswith('•'):
+                    # Формат: • faithfulness       : 0.8456
+                    parts = line.split(':')
+                    if len(parts) == 2:
+                        metric_name = parts[0].replace('•', '').strip()
+                        metric_value = parts[1].strip()
+                        try:
+                            summary[current_store][metric_name] = float(metric_value)
+                        except ValueError:
+                            pass
 
-            # Визначаємо переможців по кожній метриці
-            winners = {}
-            for metric in metric_columns:
-                best_store = max(summary.keys(),
-                               key=lambda s: summary[s].get(metric, 0))
-                winners[metric] = best_store
+            # Парсимо переможців
+            lines = content.split('\n')
+            in_winners_section = False
+            current_metric = None
 
-            summary['winners'] = winners
+            for i, line in enumerate(lines):
+                line = line.strip()
+
+                if '🏆 ПЕРЕМОЖЦІ ПО МЕТРИКАМ' in line:
+                    in_winners_section = True
+                    continue
+
+                if in_winners_section:
+                    # Виходимо з секції переможців
+                    if line.startswith('-'*10) or line.startswith('='*10):
+                        if 'ВИСНОВКИ' in line or i > 0 and 'ВИСНОВКИ' in lines[i-1]:
+                            break
+
+                    # Метрика (faithfulness:, answer_relevancy:, etc.)
+                    if line and ':' in line and not line.startswith('Winner:') and not line.startswith('Перевага:'):
+                        current_metric = line.rstrip(':').strip()
+                    # Winner: CHROMADB (0.8456)
+                    elif current_metric and line.startswith('Winner:'):
+                        winner_part = line.split(':')[1].strip()
+                        winner_store = winner_part.split('(')[0].strip().lower()
+                        summary['winners'][current_metric] = winner_store
 
             return summary
 
         except Exception as e:
-            print(f"⚠️  Помилка читання {csv_path}: {e}")
+            print(f"⚠️  Помилка читання {txt_path}: {e}")
             return None
 
     def read_kubernetes_results(self) -> Optional[Dict]:
@@ -443,7 +474,7 @@ class RAGTestRunner:
             'error': error
         }
         if success:
-            self.summary['results_files']['evaluation'] = "test_results/rag_evaluation_results.csv"
+            self.summary['results_files']['evaluation'] = "test_results/rag_evaluation_summary.txt"
             self.summary['evaluation_results'] = self.read_evaluation_results()
 
         # 3. Kubernetes Comprehensive Test
