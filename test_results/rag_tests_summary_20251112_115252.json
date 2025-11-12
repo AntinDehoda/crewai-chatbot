@@ -1,0 +1,91 @@
+{
+  "timestamp": "2025-11-12T11:52:52.937999",
+  "tests": {
+    "compare_vector_stores": {
+      "success": true,
+      "duration": 226.93560338020325,
+      "error": ""
+    },
+    "evaluate_rag": {
+      "success": true,
+      "duration": 537.1457958221436,
+      "error": ""
+    },
+    "test_rag_kubernetes": {
+      "success": true,
+      "duration": 438.27067017555237,
+      "error": ""
+    }
+  },
+  "results_files": {
+    "comparison": "test_results/vector_store_comparison_20251112_115639.txt",
+    "evaluation": "test_results/rag_evaluation_summary_20251112_120535.txt",
+    "kubernetes": "test_results/kubernetes_rag_test_20251112_121254.json"
+  },
+  "overall_summary": {
+    "total_duration": 1202.3557858467102
+  },
+  "comparison_results": {
+    "chromadb": {
+      "total_chunks": 4437.0,
+      "load_time_sec": 95.034,
+      "chunks_per_second": 46.7,
+      "avg_search_time_ms": 323.14,
+      "avg_relevance_score": 0.5775
+    },
+    "faiss": {
+      "total_chunks": 4437.0,
+      "load_time_sec": 108.533,
+      "chunks_per_second": 40.9,
+      "avg_search_time_ms": 309.44,
+      "avg_relevance_score": 0.6372
+    },
+    "winners": {
+      "fastest_loading": "chromadb",
+      "fastest_search": "faiss",
+      "best_relevance": "faiss"
+    },
+    "file": "vector_store_comparison_20251112_115639.txt"
+  },
+  "evaluation_results": {
+    "chromadb": {
+      "faithfulness": 0.7067,
+      "answer_relevancy": 0.8905,
+      "context_precision": 0.9,
+      "context_recall": 0.36
+    },
+    "faiss": {
+      "faithfulness": 0.7081,
+      "answer_relevancy": 0.888,
+      "context_precision": 0.9,
+      "context_recall": 0.36
+    },
+    "winners": {
+      "faithfulness": "faiss",
+      "answer_relevancy": "chromadb",
+      "context_precision": "chromadb",
+      "context_recall": "chromadb"
+    },
+    "file": "rag_evaluation_summary_20251112_120535.txt"
+  },
+  "kubernetes_results": {
+    "chromadb": {
+      "avg_time_ms": 5198.506915569305,
+      "avg_score": 0.7614739414304494,
+      "total_time_s": 207.94027662277222
+    },
+    "faiss": {
+      "avg_time_ms": 5591.935455799103,
+      "avg_score": 0.5707144534215332,
+      "total_time_s": 223.6774182319641
+    },
+    "comparison": {
+      "speedup_factor": 0.9296435834534189,
+      "score_difference": 0.1907594880089163,
+      "faster_store": "chromadb",
+      "better_score": "chromadb"
+    },
+    "questions_tested": 40,
+    "file": "kubernetes_rag_test_20251112_121254.json"
+  }
+}

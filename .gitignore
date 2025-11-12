@@ -8,9 +8,3 @@ utils/__pycache__/*
 
 # Test data and results
 data/pdf/*.pdf
-test_results/*.json
-test_results/*.csv
-
-# Keep folders but not contents
-!data/pdf/.gitkeep
-!test_results/.gitkeep
