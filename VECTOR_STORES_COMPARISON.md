@@ -14,9 +14,9 @@ Both implementations follow the same interface (`BaseVectorStore`), making it ea
 
 This project includes **three comparison tools** for evaluating vector stores:
 
-1. **`compare_vector_stores.py`** - Quick performance benchmark (speed, loading, relevance)
-2. **`evaluate_rag.py`** - Detailed RAGAS metrics evaluation (faithfulness, context quality)
-3. **`test_rag_kubernetes.py`** - Comprehensive Kubernetes-specific testing with 40 questions
+1. **`python compare_vector_stores.py`** - Quick performance benchmark (speed, loading, relevance)
+2. **`python evaluate_rag.py`** - Detailed RAGAS metrics evaluation (faithfulness, context quality)
+3. **`python test_rag_kubernetes.py`** - Comprehensive Kubernetes-specific testing with 40 questions
 
 ### Quick Benchmark Tool
 
@@ -300,33 +300,6 @@ def hybrid_search(query, k=4):
 
 ---
 
-## Migration Guide
-
-### From ChromaDB to FAISS
-
-```python
-# 1. Export from ChromaDB
-chromadb = VectorStoreManager()
-all_docs = []  # Export all documents
-# (ChromaDB doesn't have native export, would need to query all)
-
-# 2. Import to FAISS
-faiss = FAISSVectorStoreManager()
-faiss.add_documents(all_docs)
-```
-
-### From FAISS to ChromaDB
-
-```python
-# FAISS stores documents internally, easier migration
-faiss = FAISSVectorStoreManager()
-# Get all documents (would need custom method)
-
-chromadb = VectorStoreManager()
-chromadb.add_documents(documents)
-```
-
----
 
 ## Limitations
 
