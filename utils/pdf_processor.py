@@ -11,7 +11,7 @@ from langchain_core.documents import Document
 class PDFProcessor:
     """Клас для завантаження та обробки PDF документів"""
 
-    def __init__(self, chunk_size: int = 500, chunk_overlap: int =100):
+    def __init__(self, chunk_size: int = 500, chunk_overlap: int = 100):
         """
         Ініціалізація PDF процесора
 
