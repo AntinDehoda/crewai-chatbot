@@ -1,5 +1,4 @@
-# 🔬 Vector Stores Comparison: ChromaDB vs FAISS
-
+# 🔬 RAG Vector Stores Comparison
 ## Overview
 
 This project now supports **two vector store backends** for RAG:
@@ -10,98 +9,6 @@ Both implementations follow the same interface (`BaseVectorStore`), making it ea
 
 ---
 
-## Supported Vector Stores
-
-### 1. ChromaDB (Default)
-
-**Technology:** ChromaDB with HNSW indexing
-
-**Pros:**
-- ✅ Native metadata filtering
-- ✅ Easy document deletion by source
-- ✅ Built-in persistence
-- ✅ Rich query capabilities
-- ✅ Collection management
-
-**Cons:**
-- ⚠️ Slower than FAISS for large-scale search
-- ⚠️ Higher memory footprint
-- ⚠️ More dependencies
-
-**Best for:**
-- Production applications
-- When you need metadata filtering
-- When you need to delete specific documents
-- Smaller to medium datasets (< 100K documents)
-
-### 2. FAISS (Facebook AI Similarity Search)
-
-**Technology:** Facebook's FAISS library with L2 distance
-
-**Pros:**
-- ✅ Extremely fast similarity search
-- ✅ Memory efficient
-- ✅ Scales to millions of vectors
-- ✅ GPU support available
-- ✅ Industry-proven
-
-**Cons:**
-- ⚠️ No native metadata filtering (post-filtering only)
-- ⚠️ Cannot delete individual documents efficiently
-- ⚠️ Requires full index rebuild for deletions
-- ⚠️ More complex persistence
-
-**Best for:**
-- Large-scale datasets (> 100K documents)
-- When search speed is critical
-- Read-heavy workloads
-- When you don't need frequent updates
-
----
-
-## Quick Start
-
-### Using ChromaDB (Default)
-
-```python
-from utils import create_vector_store
-
-# Create ChromaDB vector store
-vector_store = create_vector_store("chromadb")
-
-# Or explicitly
-from utils import VectorStoreManager
-vector_store = VectorStoreManager()
-```
-
-### Using FAISS
-
-```python
-from utils import create_vector_store
-
-# Create FAISS vector store
-vector_store = create_vector_store("faiss")
-
-# Or explicitly
-from utils import FAISSVectorStoreManager
-vector_store = FAISSVectorStoreManager(index_name="my_index")
-```
-
-### Factory Pattern
-
-```python
-from utils import create_vector_store
-
-# Switch between stores easily
-store_type = "faiss"  # or "chromadb"
-vector_store = create_vector_store(store_type)
-
-# Use the same interface
-vector_store.add_documents(chunks)
-results = vector_store.search(query, k=4)
-```
-
----
 
 ## Performance Comparison
 
