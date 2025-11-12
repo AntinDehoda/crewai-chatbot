@@ -184,19 +184,24 @@ class RAGTestRunner:
 
     def read_evaluation_results(self) -> Optional[Dict]:
         """Читає результати evaluate_rag.py з TXT файлу"""
-        txt_path = self.results_folder / "rag_evaluation_summary.txt"
+        # Знаходимо найновіший файл результатів
+        txt_files = list(self.results_folder.glob("rag_evaluation_summary_*.txt"))
 
-        if not txt_path.exists():
+        if not txt_files:
             return None
 
+        # Беремо найновіший файл
+        latest_file = max(txt_files, key=lambda p: p.stat().st_mtime)
+
         try:
-            with open(txt_path, 'r', encoding='utf-8') as f:
+            with open(latest_file, 'r', encoding='utf-8') as f:
                 content = f.read()
 
             summary = {
                 "chromadb": {},
                 "faiss": {},
-                "winners": {}
+                "winners": {},
+                "file": latest_file.name
             }
 
             # Парсимо метрики для кожного vector store
@@ -251,7 +256,7 @@ class RAGTestRunner:
             return summary
 
         except Exception as e:
-            print(f"⚠️  Помилка читання {txt_path}: {e}")
+            print(f"⚠️  Помилка читання {latest_file}: {e}")
             return None
 
     def read_kubernetes_results(self) -> Optional[Dict]:
@@ -528,8 +533,10 @@ class RAGTestRunner:
             'error': error
         }
         if success:
-            self.summary['results_files']['evaluation'] = "test_results/rag_evaluation_summary.txt"
-            self.summary['evaluation_results'] = self.read_evaluation_results()
+            eval_results = self.read_evaluation_results()
+            if eval_results:
+                self.summary['results_files']['evaluation'] = f"test_results/{eval_results.get('file', 'rag_evaluation_summary.txt')}"
+                self.summary['evaluation_results'] = eval_results
 
         # 3. Kubernetes Comprehensive Test
         success, duration, error = self.run_script(

@@ -280,14 +280,24 @@ def print_comparison_summary(results_df: pd.DataFrame):
     print("\n" + "="*60 + "\n")
 
 
-def save_summary_to_txt(results_df: pd.DataFrame, output_path: str):
+def save_summary_to_txt(results_df: pd.DataFrame, output_folder: str = "test_results") -> str:
     """
-    Зберігає аналітичне summary у TXT файл (без повних питань та відповідей)
+    Зберігає аналітичне summary у TXT файл з timestamp (без повних питань та відповідей)
 
     Args:
         results_df: DataFrame з результатами оцінки
-        output_path: Шлях до вихідного TXT файлу
+        output_folder: Папка для збереження результатів
+
+    Returns:
+        str: Шлях до створеного файлу
     """
+    # Створюємо папку якщо не існує
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Генеруємо назву файлу з timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"rag_evaluation_summary_{timestamp}.txt"
+    output_path = os.path.join(output_folder, filename)
     # Вибираємо тільки числові колонки (метрики)
     numeric_cols = results_df.select_dtypes(include=['float64', 'int64', 'float32', 'int32']).columns.tolist()
     metric_columns = [col for col in numeric_cols if col != 'vector_store']
@@ -369,6 +379,8 @@ def save_summary_to_txt(results_df: pd.DataFrame, output_path: str):
         f.write('\n'.join(lines))
 
     print(f"✓ Аналітичне summary збережено в {output_path}")
+
+    return output_path
 
 
 # Приклад використання
@@ -458,6 +470,5 @@ if __name__ == "__main__":
     # Виводимо зведені результати
     print_comparison_summary(results)
 
-    # Зберігаємо аналітичне summary у TXT
-    os.makedirs("test_results", exist_ok=True)
-    save_summary_to_txt(results, "test_results/rag_evaluation_summary.txt")
+    # Зберігаємо аналітичне summary у TXT з timestamp
+    save_summary_to_txt(results)

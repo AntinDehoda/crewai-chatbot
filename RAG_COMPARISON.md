@@ -44,7 +44,7 @@ test_results/
 ├── rag_tests_summary_YYYYMMDD_HHMMSS.txt          # Human-readable summary report
 ├── rag_tests_summary_YYYYMMDD_HHMMSS.json         # Structured data with all results
 ├── vector_store_comparison_YYYYMMDD_HHMMSS.txt    # From compare_vector_stores.py
-├── rag_evaluation_summary.txt                     # From evaluate_rag.py
+├── rag_evaluation_summary_YYYYMMDD_HHMMSS.txt     # From evaluate_rag.py
 └── kubernetes_rag_test_YYYYMMDD_HHMMSS.json       # From test_rag_kubernetes.py
 ```
 
@@ -85,7 +85,7 @@ test_results/
 2. RAGAS METRICS EVALUATION (evaluate_rag.py)
 --------------------------------------------------------------------------------
    Статус: ✓ Успішно завершено за 180.45с
-   Результати: test_results/rag_evaluation_summary.txt
+   Результати: test_results/rag_evaluation_summary_20250115_143000.txt
 
    RAGAS метрики:
 
@@ -269,9 +269,9 @@ faiss             0.8234          0.9087             0.7656            0.8723
 ```
 
 **Output file:**
-- Results saved to: `test_results/rag_evaluation_summary.txt`
-- Format: Analytical summary only (no individual questions/answers)
-- Contains: Average metrics, winners, and conclusions
+- Results saved to: `test_results/rag_evaluation_summary_YYYYMMDD_HHMMSS.txt`
+- Format: Analytical summary with timestamp in filename
+- Contains: Average metrics, winners, and conclusions (no individual questions/answers)
 
 ---
 
